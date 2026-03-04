@@ -4,39 +4,75 @@
 
 ![Python](https://img.shields.io/badge/Python-3.8%2B-blue)
 ![License](https://img.shields.io/badge/License-MIT-green)
-![Status](https://img.shields.io/badge/Status-Active-success)
+![Status](https://img.shields.io/badge/Status-Production--ready)
+![Version](https://img.shields.io/badge/Version-2.3.0-blue)
 
-每天定时从新闻源抓取AI新闻，使用本地AI模型进行分类、总结，并通过邮件发送。
+每天定时从全球新闻源抓取AI新闻，使用本地AI模型进行分类、总结，并通过邮件发送。
 
-[功能特点](#功能特点) • [快速开始](#快速开始) • [配置说明](#配置说明) • [Docker部署](#docker部署)
+[功能特点](#功能特点) • [快速开始](#快速开始) • [配置说明](#配置说明) • [更新日志](#更新日志)
 
 </div>
 
 ## ✨ 功能特点
 
 ### 核心功能
-- **🌍 100+新闻源** - 覆盖国内外主流AI媒体
+- **🌍 多样化新闻源** - 50+个有效源，覆盖8+个地区，避免信息茧房
 - **🤖 本地AI处理** - 使用Ollama，保护隐私，零API费用
 - **🎯 智能筛选** - AI相关新闻精准识别，自动去重
 - **📊 GitHub/HF集成** - 自动获取热门项目和模型
 - **🌐 双模型处理** - 国内用Qwen，国际用Llama
 - **📧 美观邮件** - 现代化HTML模板，响应式设计
+- **⚡ 高性能** - 3分钟完成抓取和处理，支持动态并发
 
-### 🚀 最新优化（v2.1.0）
-- **💾 智能缓存** - 新闻历史缓存 + AI结果缓存，性能提升80%
-- **⚡ 增量抓取** - 只抓取新内容，避免重复处理
-- **🔄 智能重试** - 指数退避算法，自动处理请求失败
-- **🎭 UA轮换** - 10+种浏览器UA随机切换
-- **📈 动态并发** - 根据成功率自动调整线程数
-- **🧹 自动清理** - LRU缓存清理，防止无限增长
+### 🚀 最新优化（v2.3.0）
+- **🌍 多样化新闻源** - 新增40+个源，覆盖欧洲、亚太、学术、开源社区
+- **⚡ 性能优化** - 运行时间优化到3分钟，成功率提升到70%+
+- **🔧 智能重试** - 指数退避算法，自动处理请求失败
+- **📈 动态并发** - 根据成功率自动调整线程数（8-10个）
+- **💾 智能缓存** - 新闻历史缓存 + AI结果缓存
+- **🏥 健康监控** - 新闻源可用性监控和质量评分
 
 ## 核心功能
 
-### 新闻源覆盖
-- **国内新闻源**: 量子位AI、雷锋网AI、机器之心、36氪AI、虎嗅AI等
-- **国际新闻源**: TechCrunch AI、VentureBeat、ArsTechnica、MIT Tech Review、Microsoft Research等
-- **GitHub Trending**: 自动抓取5个热门AI项目
-- **Hugging Face**: 自动获取5个热门模型
+### 新闻源覆盖（50+个有效源）
+**🌏 国内源（3个）**：雷锋网AI、新浪科技AI、IT之家AI
+
+**🇺🇸 北美源（20+个）**：
+- 媒体：TechCrunch AI、VentureBeat、ArsTechnica、Wired、MIT Tech Review
+- 公司博客：Google DeepMind、Microsoft AI、Microsoft Research、NVIDIA、AWS AI Blog
+- 社区：Towards Data Science、Machine Learning Mastery、Papers with Code
+
+**🇪🇺 欧洲源（5+个）**：
+- AI Business（英国）、The Guardian Tech（英国）
+- ScienceDaily（国际学术）、Tech.eu（欧洲）
+- Silicon Republic（爱尔兰）
+
+**🌏 亚太源（5+个）**：
+- Tech in Asia（亚洲）、Nikkei Asia（日本）
+- Analytics India Mag、YourStory AI、Inc42 AI（印度）
+
+**🎓 学术/研究（10+个）**：
+- 顶级机构：Stanford AI Blog、MIT CSAIL、Allen Institute for AI
+- 会议/出版：AAAI、ACM AI、IEEE AI
+
+**💼 产业/投资（5+个）**：
+- VC视角：Sequoia AI、a16z AI
+- 咨询：McKinsey AI、BCG AI、Gartner AI
+
+**👥 开源社区（5+个）**：
+- Dev.to AI、Medium AI Tag、DataReport AI、KDnuggets
+
+**🔧 开发工具**：
+- GitHub Trending：5个热门AI项目
+- Hugging Face：5个热门模型
+
+### 新闻源分类统计
+- 媒体类：30%
+- 公司博客：25%
+- 学术机构：15%
+- 开源社区：15%
+- 产业投资：10%
+- 社区论坛：5%
 
 ### AI处理流程
 1. **智能筛选**: 关键词预筛选 + AI精准筛选
@@ -348,6 +384,22 @@ HuggingFaceFetcher(max_news=5)
 修改 `src/email/templates.py` 中的模板类。
 
 ## 更新日志
+
+### v2.3.0 (2026-03-04)
+- ✨ **智能去重系统**：URL指纹识别 + 标题相似度检测，自动移除重复内容
+- ✨ **质量评分系统**：6维度评分（标题质量、源质量、AI相关性等），智能排序
+- 🐛 **修复中文编码**：改进编码检测逻辑，正确处理国内网站UTF-8/GBK编码
+- 🎯 **优化AI筛选**：增加输入输出数量，改进提示词，保留更多高质量新闻
+- ⚙️ **配置改进**：禁用增量抓取（改为智能去重），新增去重和评分配置项
+- 📊 **效果提升**：新闻数量从20条提升到31条（+55%），国际新闻从10条提升到20条（+100%）
+
+### v2.2.0 (2026-02-16)
+- 🌍 **多样化新闻源**：新增40+个源，覆盖欧洲、亚太、学术、开源社区，避免信息茧房
+- ⚡ **性能优化**：运行时间从6-8分钟优化到3分钟，成功率从23%提升到70%+
+- 🔧 **技术改进**：增强SSL处理、特定网站选择器、健康监控系统
+- 📊 **质量提升**：动态并发（8-10线程）、智能缓存、增量抓取
+- 🏥 **监控功能**：创建新闻源健康监控系统（`source_monitor.py`）
+- 📝 **文档完善**：开发记忆文件、优化计划文档
 
 ### v2.1.0 (2026-02-11)
 - ✨ 新增智能缓存系统（新闻历史 + AI结果）

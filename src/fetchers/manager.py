@@ -16,6 +16,7 @@ from ..utils.logger import get_logger
 from ..utils.helpers import generate_hash
 from ..utils.cache_manager import CacheManager
 from ..utils.request_utils import DynamicConcurrencyManager
+from ..utils.dedup import NewsDeduplicator, ContentQualityScorer
 from ..config.constants import DEFAULT_SOURCES, CACHE_CONFIG, DYNAMIC_CONCURRENCY_CONFIG
 
 
@@ -30,7 +31,9 @@ class FetcherManager:
         enable_huggingface: bool = True,
         enable_cache: bool = True,
         enable_dynamic_concurrency: bool = False,
-        incremental_fetch: bool = False
+        incremental_fetch: bool = False,
+        enable_smart_dedup: bool = True,
+        enable_quality_scoring: bool = True
     ):
         """
         初始化抓取管理器
@@ -43,6 +46,8 @@ class FetcherManager:
             enable_cache: 是否启用缓存
             enable_dynamic_concurrency: 是否启用动态并发
             incremental_fetch: 是否启用增量抓取
+            enable_smart_dedup: 是否启用智能去重
+            enable_quality_scoring: 是否启用质量评分
         """
         self.logger = get_logger("fetcher")
         self.sources = sources or DEFAULT_SOURCES
@@ -50,6 +55,25 @@ class FetcherManager:
         self.enable_github = enable_github
         self.enable_huggingface = enable_huggingface
         self._fetchers: List[BaseFetcher] = []
+
+        # 智能去重和质量评分
+        self.enable_smart_dedup = enable_smart_dedup
+        self.enable_quality_scoring = enable_quality_scoring
+
+        if enable_smart_dedup:
+            self.deduplicator = NewsDeduplicator(
+                title_similarity_threshold=0.85,
+                url_similarity_threshold=0.90
+            )
+            self.logger.info("智能去重已启用")
+        else:
+            self.deduplicator = None
+
+        if enable_quality_scoring:
+            self.quality_scorer = ContentQualityScorer()
+            self.logger.info("质量评分已启用")
+        else:
+            self.quality_scorer = None
 
         # 初始化缓存管理器
         self.enable_cache = enable_cache
@@ -287,18 +311,33 @@ class FetcherManager:
         Returns:
             去重后的新闻列表
         """
-        seen_hashes = set()
-        unique_news = []
+        # 如果启用了智能去重，使用智能去重器
+        if self.enable_smart_dedup and self.deduplicator:
+            self.logger.info("使用智能去重系统...")
+            unique_news = self.deduplicator.deduplicate_news_list(news_list)
+            stats = self.deduplicator.get_stats()
+            self.logger.info(
+                f"智能去重结果: 保留 {stats['kept']}/{stats['total_processed']} "
+                f"(URL重复: {stats['url_duplicates']}, "
+                f"标题重复: {stats['title_duplicates']}, "
+                f"相似重复: {stats['similar_duplicates']})"
+            )
+            return unique_news
+        else:
+            # 使用简单的哈希去重
+            seen_hashes = set()
+            unique_news = []
 
-        for news in news_list:
-            # 使用标题哈希作为去重依据
-            title_hash = generate_hash(news.title.lower().strip())
+            for news in news_list:
+                # 使用标题哈希作为去重依据
+                title_hash = generate_hash(news.title.lower().strip())
 
-            if title_hash not in seen_hashes:
-                seen_hashes.add(title_hash)
-                unique_news.append(news)
+                if title_hash not in seen_hashes:
+                    seen_hashes.add(title_hash)
+                    unique_news.append(news)
 
-        return unique_news
+            self.logger.info(f"简单哈希去重: {len(unique_news)}/{len(news_list)} 条新闻保留")
+            return unique_news
 
     def get_statistics(self, news_list: List[NewsItem]) -> Dict[str, Any]:
         """
@@ -387,6 +426,13 @@ class FetcherManager:
         Returns:
             已分配分数的新闻列表
         """
+        # 如果启用了质量评分，使用质量评分器
+        if self.enable_quality_scoring and self.quality_scorer:
+            self.logger.info("使用质量评分系统...")
+            scored_news = self.quality_scorer.rank_news(news_list)
+            return scored_news
+
+        # 否则使用简单的规则评分
         for news in news_list:
             # 基础分数
             base_score = 5.0

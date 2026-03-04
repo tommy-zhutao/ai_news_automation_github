@@ -39,7 +39,7 @@ class NewsAutomationApp:
         """初始化各模块"""
         self.logger.info("=" * 50)
         self.logger.info("AI新闻自动化系统启动")
-        self.logger.info(f"版本: 2.1.0 (优化版)")
+        self.logger.info(f"版本: 2.3.0 (智能去重+质量评分)")
         self.logger.info("=" * 50)
 
         # 初始化抓取管理器（启用缓存和可选的动态并发）
@@ -49,7 +49,9 @@ class NewsAutomationApp:
             enable_huggingface=self.config.fetcher.enable_huggingface,
             enable_cache=True,  # 默认启用缓存
             enable_dynamic_concurrency=getattr(self.config.fetcher, 'dynamic_concurrency', False),
-            incremental_fetch=getattr(self.config.fetcher, 'incremental_fetch', False)
+            incremental_fetch=getattr(self.config.fetcher, 'incremental_fetch', False),
+            enable_smart_dedup=getattr(self.config.fetcher, 'enable_smart_dedup', True),
+            enable_quality_scoring=getattr(self.config.fetcher, 'enable_quality_scoring', True)
         )
 
         # 显示缓存统计

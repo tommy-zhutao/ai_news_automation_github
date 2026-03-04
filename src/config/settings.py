@@ -59,6 +59,12 @@ class FetcherConfig:
     dynamic_concurrency: bool = False  # 是否启用动态并发
     incremental_fetch: bool = False  # 是否启用增量抓取
     check_hours: int = 24  # 增量抓取检查时间范围（小时）
+    request_timeout: int = 15  # 请求超时时间（秒）
+    # 新增：智能去重和质量评分配置
+    enable_smart_dedup: bool = True  # 是否启用智能去重
+    enable_quality_scoring: bool = True  # 是否启用质量评分
+    title_similarity_threshold: float = 0.85  # 标题相似度阈值
+    url_similarity_threshold: float = 0.90  # URL相似度阈值
 
 
 @dataclass

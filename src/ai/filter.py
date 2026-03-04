@@ -34,8 +34,17 @@ class NewsAIFilter:
 
     # 高价值关键词（直接影响是否保留）
     HIGH_VALUE_KEYWORDS = {
-        # 2025年热门模型和产品
+        # 2025-2026年热门模型和产品
         'claude 4', 'gemini 2.0', 'gpt-5', 'o3', 'llama 4', 'mistral large',
+
+        # 国内大模型（新增）
+        'glm 4', 'glm 5', 'glm-4', 'glm-5',
+        'minimax 2.5', 'minimax-2.5',
+        'deepseek v3', 'deepseek-r1',
+        'qwen 2.5', 'qwen-2.5', 'qwen2.5-max',
+        'baichuan 4', 'internlm', 'yi-large',
+
+        # 其他重要模型
         'deepseek', 'qwen 2', 'sora', 'runway', 'midjourney', 'stable diffusion 3',
 
         # 重要技术突破
@@ -217,8 +226,8 @@ class NewsAIFilter:
             self.logger.info("没有常规新闻需要筛选")
             return high_value_items
 
-        # 先进行关键词预筛选
-        regular_news = self.pre_filter_news(regular_news, min_score=1.5)
+        # 先进行关键词预筛选（降低门槛，让更多新闻进入AI评估）
+        regular_news = self.pre_filter_news(regular_news, min_score=0.5)
 
         if not regular_news:
             self.logger.info("预筛选后没有剩余新闻")
@@ -243,9 +252,9 @@ class NewsAIFilter:
             self.logger.info(f"筛选完成（无AI）：国内 {len(final_domestic)} 条，国际 {len(final_global)} 条")
             return high_value_items + final_regular
 
-        # 对国内新闻进行AI筛选（最多15条给AI评估）
-        filtered_domestic = self._filter_region_news(domestic_news, "domestic", max_input=15, max_output=5)
-        filtered_global = self._filter_region_news(global_news, "global", max_input=30, max_output=10)
+        # 对国内新闻进行AI筛选（增加输入输出数量）
+        filtered_domestic = self._filter_region_news(domestic_news, "domestic", max_input=50, max_output=10)
+        filtered_global = self._filter_region_news(global_news, "global", max_input=100, max_output=20)
 
         filtered = filtered_domestic + filtered_global
 
@@ -290,32 +299,37 @@ class NewsAIFilter:
         ])
 
         region_name = "国内" if region == "domestic" else "国际"
-        prompt = f"""请从以下{region_name}AI相关新闻中筛选出最值得发送的{max_output}条。
+        prompt = f"""请从以下{region_name}AI相关新闻中筛选出最值得发送的{max_output}条高质量新闻。
 
-筛选标准（严格执行）：
-【必须保留】
-- 技术突破、研究进展、新模型/算法发布
-- 重要产品发布、重大更新
-- 行业领军公司的重大动态
-- 融资、收购、合作等商业动态
-- 深度分析、行业报告、数据洞察
+【优先保留标准】
+1. 技术突破：新模型、新算法、重要研究成果
+2. 产品发布：重要产品发布、重大功能更新
+3. 公司动态：行业领军公司（OpenAI、Google、Microsoft等）的重大动态
+4. 商业动态：融资、收购、合作、投资
+5. 深度内容：行业分析、技术趋势、数据报告
+6. 开源项目：重要开源项目更新
 
-【必须排除】
-- 招聘信息、求职指南
-- 广告推广、营销软文
-- 内容空洞、缺乏实质信息的文章
-- 标题党、夸大其词
-- 重复内容、旧闻重提
-- 纯产品评测、使用教程（除非有重大更新）
+【可以保留】
+- 产品评测（如果有深度见解）
+- 技术教程（如果是高阶内容）
+- 行业观点和评论
 
-【宁缺毋滥】
-- 如果新闻质量一般，宁可少发也不要发低质量内容
+【排除标准】
+- 招聘信息、求职广告
+- 纯营销软文
+- 内容空洞、无实质信息
+- 过时的旧闻（一周前）
+
+【筛选原则】
+- 尽可能保留有价值的内容
+- 优先考虑技术重要性和时效性
+- 如果有超过{max_output}条高质量新闻，优先选择最重要的
 
 新闻列表：
 {news_text}
 
-请返回值得发送的新闻编号，用逗号分隔，例如：1,3,5,7,9
-根据质量决定数量，最多保留{max_output}条
+请返回值得发送的新闻编号，用逗号分隔，例如：1,3,5,7,9,12,15
+尽量保留{max_output}条，但如果质量都很好可以适当增加
 只返回编号："""
 
         result = self.client.generate(prompt, temperature=0.3)
