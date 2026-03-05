@@ -143,7 +143,7 @@ AI_KEYWORDS = {
         'glm', 'glm-4', 'glm-5', 'glm4', 'glm5', 'chatglm', 'chatglm 4', 'chatglm-4',
         'minimax', 'minimax 2.5', 'minimax-2.5', 'abab', 'abab 6',
         'deepseek', 'deepseek v3', 'deepseek v2', 'deepseek-r1',
-        'qwen', 'qwen 2', 'qwen-2.5', 'qwen2.5', 'qwen 2-max', 'qwen-max',
+        'qwen', 'qwen 2', 'qwen 3', 'qwen-2.5', 'qwen2.5', 'qwen3', 'qwen-3', 'qwen 2-max', 'qwen-max',
         'baichuan', 'baichuan 4', 'baichuan2', 'internlm', 'yi', 'yi-large', 'yi-1.5',
 
         # 其他模型
@@ -430,7 +430,7 @@ DEFAULT_CONFIG = {
     "ai": {
         "enabled": True,
         "ollama_url": "http://localhost:11434",
-        "model_name": "qwen2.5:7b-instruct",
+        "model_name": "qwen3:7b-instruct",
         "temperature": 0.7,
         "max_tokens": 2000,
         "timeout": 60,

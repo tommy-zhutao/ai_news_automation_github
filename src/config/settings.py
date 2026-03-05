@@ -37,7 +37,7 @@ class AIConfig:
     """AI配置"""
     enabled: bool = True
     ollama_url: str = "http://localhost:11434"
-    model_name: str = "qwen2.5:7b-instruct"
+    model_name: str = "qwen3:7b-instruct"
     temperature: float = 0.7
     max_tokens: int = 2000
     timeout: int = 60

@@ -78,11 +78,11 @@
 ### AI处理流程
 1. **智能筛选**: 关键词预筛选 + AI精准筛选
 2. **分别处理**:
-   - 国内新闻: qwen2.5:7b-instruct处理，保留前5名
+   - 国内新闻: qwen3:7b-instruct处理，保留前5名
    - 国际新闻: llama3.1:8b处理，保留前10名
 3. **摘要生成**: 国内外分别生成摘要
 4. **趋势分析**: 国内外分别分析趋势
-5. **综合汇总**: qwen2.5:7b-instruct生成最终概要和趋势
+5. **综合汇总**: qwen3:7b-instruct生成最终概要和趋势
 
 ### 输出内容
 - GitHub热门项目（5个）
@@ -169,7 +169,7 @@ ai_news_automation_github/
 
 - Python 3.8+
 - Ollama (本地AI服务)
-- qwen2.5:7b-instruct 模型
+- qwen3:7b-instruct 模型
 - llama3.1:8b 模型（用于国际新闻处理）
 
 ## 快速开始
@@ -182,7 +182,7 @@ ai_news_automation_github/
 
 ```bash
 # 国内新闻处理模型（必需）
-ollama pull qwen2.5:7b-instruct
+ollama pull qwen3:7b-instruct
 
 # 国际新闻处理模型（必需）
 ollama pull llama3.1:8b
@@ -259,7 +259,7 @@ python run.py --config "D:\path\to\config.json"
 | 配置项 | 说明 | 默认值 |
 |--------|------|--------|
 | `ai.enabled` | 是否启用AI处理 | true |
-| `ai.model_name` | 默认AI模型 | qwen2.5:7b-instruct |
+| `ai.model_name` | 默认AI模型 | qwen3:7b-instruct |
 | `ai.temperature` | AI温度参数 | 0.7 |
 | `ai.timeout` | AI请求超时(秒) | 60 |
 | `ai.enable_filter` | 是否启用AI筛选 | true |
@@ -285,13 +285,13 @@ python run.py --config "D:\path\to\config.json"
 
 | 任务 | 使用模型 | 说明 |
 |------|---------|------|
-| 国内新闻筛选 | qwen2.5:7b-instruct | 保留前5篇 |
-| 国际新闻筛选 | qwen2.5:7b-instruct | 保留前10篇 |
-| 国内新闻摘要 | qwen2.5:7b-instruct | 100字以内 |
+| 国内新闻筛选 | qwen3:7b-instruct | 保留前5篇 |
+| 国际新闻筛选 | qwen3:7b-instruct | 保留前10篇 |
+| 国内新闻摘要 | qwen3:7b-instruct | 100字以内 |
 | 国际新闻摘要 | llama3.1:8b | 100字以内 |
-| 国内趋势分析 | qwen2.5:7b-instruct | 150字以内 |
+| 国内趋势分析 | qwen3:7b-instruct | 150字以内 |
 | 国际趋势分析 | llama3.1:8b | 200字以内 |
-| 综合汇总 | qwen2.5:7b-instruct | 合并国内外内容 |
+| 综合汇总 | qwen3:7b-instruct | 合并国内外内容 |
 
 ### 自定义模型
 

@@ -41,7 +41,7 @@ class NewsAIFilter:
         'glm 4', 'glm 5', 'glm-4', 'glm-5',
         'minimax 2.5', 'minimax-2.5',
         'deepseek v3', 'deepseek-r1',
-        'qwen 2.5', 'qwen-2.5', 'qwen2.5-max',
+        'qwen 2.5', 'qwen-2.5', 'qwen2.5-max', 'qwen 3', 'qwen-3', 'qwen3',
         'baichuan 4', 'internlm', 'yi-large',
 
         # 其他重要模型

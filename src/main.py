@@ -184,6 +184,24 @@ class NewsAutomationApp:
         self.cleanup()
 
 
+def run_web_server(host='127.0.0.1', port=5000, debug=False):
+    """
+    运行Web服务器
+
+    Args:
+        host: 主机地址
+        port: 端口
+        debug: 调试模式
+    """
+    try:
+        from src.web.app import run_web_server as start_web
+        start_web(host=host, port=port, debug=debug)
+    except ImportError as e:
+        print(f"错误: 无法导入Web模块 - {e}")
+        print("请确保已安装Flask及相关依赖: pip install Flask Flask-SQLAlchemy")
+        sys.exit(1)
+
+
 def main():
     """主函数"""
     # 设置控制台编码（Windows）
@@ -195,6 +213,11 @@ def main():
     parser.add_argument("--config", default="config.json", help="配置文件路径")
     parser.add_argument("--no-email", action="store_true", help="不发送邮件")
     parser.add_argument("--test-ai", action="store_true", help="测试AI功能")
+    parser.add_argument("--web", action="store_true", help="启动Web服务器")
+    parser.add_argument("--web-host", default="127.0.0.1", help="Web服务器主机地址")
+    parser.add_argument("--web-port", type=int, default=5000, help="Web服务器端口")
+    parser.add_argument("--web-debug", action="store_true", help="Web调试模式")
+    parser.add_argument("--import-data", action="store_true", help="导入历史数据到数据库")
     parser.add_argument("--log-level", default="INFO", choices=["DEBUG", "INFO", "WARNING", "ERROR"],
                        help="日志级别")
 
@@ -202,6 +225,33 @@ def main():
 
     # 设置日志级别
     setup_logging(args.log_level)
+
+    # Web模式
+    if args.web:
+        run_web_server(host=args.web_host, port=args.web_port, debug=args.web_debug)
+        return
+
+    # 数据导入模式
+    if args.import_data:
+        try:
+            from src.web.services.data_importer import DataImporter
+            from src.utils.logger import get_logger
+
+            logger = get_logger('import')
+            logger.info("开始导入历史数据...")
+
+            importer = DataImporter('output')
+            stats = importer.sync_from_output()
+
+            logger.info(f"导入完成: {stats}")
+            print(f"\n导入统计:")
+            print(f"  文件: {stats['success_files']}/{stats['total_files']}")
+            print(f"  新闻: {stats['imported_news']}/{stats['total_news']}")
+            print(f"  跳过: {stats['skipped_news']}")
+        except ImportError as e:
+            print(f"错误: 无法导入数据模块 - {e}")
+            sys.exit(1)
+        return
 
     # 创建应用实例
     app = NewsAutomationApp(args.config)
