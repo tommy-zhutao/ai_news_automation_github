@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}搜索: {{ keyword }} - AI新闻自动化系统{% endblock %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-12">
+        <h1 class="h3">
+            <i class="bi bi-search"></i> 搜索结果
+        </h1>
+        <p class="text-muted">关键词: <strong>{{ keyword }}</strong></p>
+    </div>
+</div>
+
+<!-- 新闻列表 -->
+{% if news %}
+<div class="row">
+    {% for item in news %}
+    <div class="col-lg-6 col-md-12 mb-3">
+        <div class="card h-100 news-card">
+            <div class="card-body">
+                <a href="{{ item.link }}" target="_blank" class="news-title text-truncate-2">
+                    {{ item.title }}
+                </a>
+                <div class="news-meta">
+                    <span class="badge bg-secondary">{{ item.source }}</span>
+                    {% if item.region %}
+                    <span class="badge bg-{{ 'success' if item.region == 'domestic' else 'info' }}">
+                        {{ '国内' if item.region == 'domestic' else '国际' }}
+                    </span>
+                    {% endif %}
+                    <span class="ms-2">
+                        <i class="bi bi-calendar"></i> {{ item.date }}
+                    </span>
+                </div>
+                {% if item.summary %}
+                <p class="news-summary text-truncate-3 mb-0">{{ item.summary }}</p>
+                {% endif %}
+            </div>
+            <div class="card-footer bg-transparent border-top-0">
+                <a href="{{ url_for('news.detail', news_id=item.id) }}" class="btn btn-sm btn-outline-primary">
+                    查看详情
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- 分页 -->
+{% if pagination %}
+<nav aria-label="分页导航">
+    <ul class="pagination justify-content-center">
+        <li class="page-item {{ 'disabled' if not pagination.has_prev else '' }}">
+            <a class="page-link"
+               href="{{ url_for('news.search', q=keyword, page=pagination.page-1) }}"
+               {{ 'tabindex="-1"' if not pagination.has_prev else '' }}>
+                上一页
+            </a>
+        </li>
+
+        {% for page_num in range(1, pagination.pages + 1) %}
+            {% if page_num == pagination.page %}
+            <li class="page-item active">
+                <span class="page-link">{{ page_num }}</span>
+            </li>
+            {% elif page_num <= 3 or page_num > pagination.pages - 3 or (page_num >= pagination.page - 1 and page_num <= pagination.page + 1) %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('news.search', q=keyword, page=page_num) }}">{{ page_num }}</a>
+            </li>
+            {% elif page_num == 4 or page_num == pagination.pages - 3 %}
+            <li class="page-item disabled">
+                <span class="page-link">...</span>
+            </li>
+            {% endif %}
+        {% endfor %}
+
+        <li class="page-item {{ 'disabled' if not pagination.has_next else '' }}">
+            <a class="page-link"
+               href="{{ url_for('news.search', q=keyword, page=pagination.page+1) }}"
+               {{ 'tabindex="-1"' if not pagination.has_next else '' }}>
+                下一页
+            </a>
+        </li>
+    </ul>
+</nav>
+
+<div class="text-center text-muted mb-3">
+    <small>第 {{ pagination.page }} / {{ pagination.pages }} 页，共 {{ pagination.total }} 条结果</small>
+</div>
+{% endif %}
+
+{% else %}
+<div class="text-center py-5">
+    <i class="bi bi-search fs-1 text-muted"></i>
+    <p class="text-muted mt-3">未找到与 "{{ keyword }}" 相关的新闻</p>
+    <a href="{{ url_for('news.list') }}" class="btn btn-primary">浏览全部新闻</a>
+</div>
+{% endif %}
+{% endblock %}

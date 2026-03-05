@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+
+{% block title %}系统设置 - AI新闻自动化系统{% endblock %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-12">
+        <h1 class="page-title">
+            <i class="bi bi-gear"></i> 系统设置
+        </h1>
+    </div>
+</div>
+
+{% if error %}
+<div class="alert alert-danger" role="alert">
+    <i class="bi bi-exclamation-triangle"></i> {{ error }}
+</div>
+{% endif %}
+
+<div class="row">
+    <div class="col-lg-8">
+        <!-- AI设置 -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-cpu"></i> AI设置
+            </div>
+            <div class="card-body">
+                <form id="aiSettingsForm">
+                    <div class="mb-3">
+                        <label class="form-label">启用AI处理</label>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="ai_enabled"
+                                   {% if settings.ai_enabled %}checked{% endif %}>
+                            <label class="form-check-label" for="ai_enabled">
+                                启用AI摘要和趋势分析
+                            </label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="ai_model_domestic" class="form-label">国内新闻模型</label>
+                        <input type="text" class="form-control" id="ai_model_domestic"
+                               value="{{ settings.ai_model_domestic or '' }}"
+                               placeholder="例如: qwen2.5:7b-instruct">
+                        <div class="form-text">用于处理国内新闻的Ollama模型</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="ai_model_global" class="form-label">国际新闻模型</label>
+                        <input type="text" class="form-control" id="ai_model_global"
+                               value="{{ settings.ai_model_global or '' }}"
+                               placeholder="例如: llama3.1:8b">
+                        <div class="form-text">用于处理国际新闻的Ollama模型</div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 抓取设置 -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-cloud-download"></i> 抓取设置
+            </div>
+            <div class="card-body">
+                <form id="fetcherSettingsForm">
+                    <div class="mb-3">
+                        <label for="concurrent_requests" class="form-label">并发请求数</label>
+                        <input type="number" class="form-control" id="concurrent_requests"
+                               value="{{ settings.concurrent_requests or 5 }}"
+                               min="1" max="20">
+                        <div class="form-text">同时抓取的网站数量（1-20）</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">启用GitHub抓取</label>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="enable_github"
+                                   {% if settings.enable_github %}checked{% endif %}}>
+                            <label class="form-check-label" for="enable_github">
+                                抓取GitHub Trending热门项目
+                            </label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">启用HuggingFace抓取</label>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="enable_huggingface"
+                                   {% if settings.enable_huggingface %}checked{% endif %}>
+                            <label class="form-check-label" for="enable_huggingface">
+                                抓取Hugging Face热门模型
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 保存按钮 -->
+        <div class="card">
+            <div class="card-body">
+                <button type="button" class="btn btn-primary" onclick="saveSettings()">
+                    <i class="bi bi-check-lg"></i> 保存设置
+                </button>
+                <button type="button" class="btn btn-outline-secondary" onclick="location.reload()">
+                    <i class="bi bi-arrow-counterclockwise"></i> 重置
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 信息面板 -->
+    <div class="col-lg-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-info-circle"></i> 提示
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle text-success me-2"></i>
+                        修改设置后需要重启系统才能生效
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle text-success me-2"></i>
+                        AI功能需要安装Ollama并下载对应模型
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle text-success me-2"></i>
+                        并发数过高可能被网站封禁
+                    </li>
+                    <li>
+                        <i class="bi bi-check-circle text-success me-2"></i>
+                        建议并发数为3-5
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-envelope"></i> 邮件状态
+            </div>
+            <div class="card-body">
+                {% if settings.email_enabled %}
+                <div class="alert alert-success mb-0">
+                    <i class="bi bi-check-circle"></i> 邮箱已配置
+                    <br>
+                    <small class="text-muted">{{ settings.email_recipient }}</small>
+                </div>
+                {% else %}
+                <div class="alert alert-warning mb-0">
+                    <i class="bi bi-exclamation-triangle"></i> 邮箱未配置
+                    <br>
+                    <small class="text-muted">请在config.json中配置邮箱信息</small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function saveSettings() {
+    const settings = {
+        ai_enabled: document.getElementById('ai_enabled').checked,
+        ai_model_domestic: document.getElementById('ai_model_domestic').value,
+        ai_model_global: document.getElementById('ai_model_global').value,
+        concurrent_requests: parseInt(document.getElementById('concurrent_requests').value),
+        enable_github: document.getElementById('enable_github').checked,
+        enable_huggingface: document.getElementById('enable_huggingface').checked
+    };
+
+    fetch('/config/settings/update', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(settings)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            App.showSuccess(data.message);
+        } else {
+            App.showError(data.message);
+        }
+    })
+    .catch(error => {
+        App.showError('保存失败: ' + error);
+    });
+}
+</script>
+{% endblock %}

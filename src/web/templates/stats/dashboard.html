@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+
+{% block title %}统计分析 - AI新闻自动化系统{% endblock %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-12">
+        <h1 class="h3">
+            <i class="bi bi-graph-up"></i> 统计分析
+        </h1>
+    </div>
+</div>
+
+{% if error %}
+<div class="alert alert-danger" role="alert">
+    <i class="bi bi-exclamation-triangle"></i> {{ error }}
+</div>
+{% else %}
+
+<!-- 统计概览 -->
+<div class="row mb-4">
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card stat-card">
+            <div class="stat-value">{{ stats.total_news if stats else 0 }}</div>
+            <div class="stat-label">总新闻数</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card stat-card success">
+            <div class="stat-value">{{ stats.domestic_count if stats else 0 }}</div>
+            <div class="stat-label">国内新闻</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card stat-card warning">
+            <div class="stat-value">{{ stats.global_count if stats else 0 }}</div>
+            <div class="stat-label">国际新闻</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card stat-card">
+            <div class="stat-value">{{ stats.source_count if stats else 0 }}</div>
+            <div class="stat-label">新闻源数量</div>
+        </div>
+    </div>
+</div>
+
+<!-- 时间范围选择 -->
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="btn-group" role="group">
+            <a href="{{ url_for('stats.dashboard', days=7) }}"
+               class="btn btn-outline-primary {{ 'active' if days == 7 else '' }}">7天</a>
+            <a href="{{ url_for('stats.dashboard', days=30) }}"
+               class="btn btn-outline-primary {{ 'active' if days == 30 else '' }}">30天</a>
+            <a href="{{ url_for('stats.dashboard', days=90) }}"
+               class="btn btn-outline-primary {{ 'active' if days == 90 else '' }}">90天</a>
+        </div>
+    </div>
+</div>
+
+<!-- 趋势图 -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-graph-up"></i> 新闻数量趋势
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 分类分布 -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header">
+                <i class="bi bi-pie-chart"></i> 分类分布
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header">
+                <i class="bi bi-bar-chart"></i> 新闻源性能
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="sourceChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    {% if trend_data %}
+    // 趋势图
+    const trendCtx = document.getElementById('trendChart');
+    if (trendCtx) {
+        new Chart(trendCtx, {
+            type: 'line',
+            data: {
+                labels: {{ trend_data.dates | tojson }},
+                datasets: [
+                    {
+                        label: '总计',
+                        data: {{ trend_data.total | tojson }},
+                        borderColor: 'rgb(13, 110, 253)',
+                        backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                        tension: 0.3,
+                        fill: true
+                    },
+                    {
+                        label: '国内',
+                        data: {{ trend_data.domestic | tojson }},
+                        borderColor: 'rgb(25, 135, 84)',
+                        tension: 0.3
+                    },
+                    {
+                        label: '国际',
+                        data: {{ trend_data.global | tojson }},
+                        borderColor: 'rgb(255, 193, 7)',
+                        tension: 0.3
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'top' } },
+                scales: { y: { beginAtZero: true } }
+            }
+        });
+    }
+    {% endif %}
+
+    {% if category_data %}
+    // 分类分布图
+    const categoryCtx = document.getElementById('categoryChart');
+    if (categoryCtx && {{ category_data.categories | tojson }}.length > 0) {
+        new Chart(categoryCtx, {
+            type: 'doughnut',
+            data: {
+                labels: {{ category_data.categories | tojson }},
+                datasets: [{
+                    data: {{ category_data.counts | tojson }},
+                    backgroundColor: [
+                        'rgb(13, 110, 253)', 'rgb(25, 135, 84)', 'rgb(255, 193, 7)',
+                        'rgb(220, 53, 69)', 'rgb(13, 202, 240)', 'rgb(102, 16, 242)'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'right' } }
+            }
+        });
+    }
+    {% endif %}
+
+    {% if source_data %}
+    // 新闻源性能图
+    const sourceCtx = document.getElementById('sourceChart');
+    if (sourceCtx && {{ source_data.sources | tojson }}.length > 0) {
+        new Chart(sourceCtx, {
+            type: 'bar',
+            data: {
+                labels: {{ source_data.sources | tojson }},
+                datasets: [{
+                    label: '新闻数量',
+                    data: {{ source_data.counts | tojson }},
+                    backgroundColor: 'rgb(13, 110, 253)'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true } }
+            }
+        });
+    }
+    {% endif %}
+});
+</script>
+{% endblock %}

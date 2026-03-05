@@ -1,0 +1,575 @@
+{% extends "base.html" %}
+
+{% block title %}首页 - AI新闻自动化系统{% endblock %}
+
+{% block content %}
+<!-- 页面标题 -->
+<div class="page-title fade-in-up">
+    <i class="bi bi-speedometer2"></i> 系统概览
+</div>
+
+{% if stats %}
+<!-- 统计卡片 -->
+<div class="row mb-4 fade-in-up">
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="modern-stat-card primary">
+            <div class="d-flex align-items-center">
+                <div class="icon">
+                    <i class="bi bi-newspaper"></i>
+                </div>
+                <div class="flex-grow-1 ms-3">
+                    <h3>{{ stats.total_news }}</h3>
+                    <p>总新闻数</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="modern-stat-card success">
+            <div class="d-flex align-items-center">
+                <div class="icon">
+                    <i class="bi bi-calendar-check"></i>
+                </div>
+                <div class="flex-grow-1 ms-3">
+                    <h3>{{ stats.today_news }}</h3>
+                    <p>今日新闻</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="modern-stat-card warning">
+            <div class="d-flex align-items-center">
+                <div class="icon">
+                    <i class="bi bi-house-heart"></i>
+                </div>
+                <div class="flex-grow-1 ms-3">
+                    <h3>{{ stats.domestic_count }}</h3>
+                    <p>国内新闻</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="modern-stat-card danger">
+            <div class="d-flex align-items-center">
+                <div class="icon">
+                    <i class="bi bi-globe-americas"></i>
+                </div>
+                <div class="flex-grow-1 ms-3">
+                    <h3>{{ stats.global_count }}</h3>
+                    <p>国际新闻</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 快速操作 - 移到顶部 -->
+<div class="row mb-4 fade-in-up">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-lightning-charge"></i> 快速操作
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-lg-3 col-md-6">
+                        <button class="btn btn-primary w-100 py-3" id="fetchNewsBtn">
+                            <i class="bi bi-arrow-clockwise me-2"></i> 立即抓取
+                        </button>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <a href="{{ url_for('news.list') }}" class="btn btn-outline-primary w-100 py-3 d-flex align-items-center justify-content-center">
+                            <i class="bi bi-list-ul me-2"></i> 浏览新闻
+                        </a>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <a href="{{ url_for('stats.dashboard') }}" class="btn btn-outline-success w-100 py-3 d-flex align-items-center justify-content-center">
+                            <i class="bi bi-graph-up me-2"></i> 统计分析
+                        </a>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <a href="{{ url_for('config.sources') }}" class="btn btn-outline-info w-100 py-3 d-flex align-items-center justify-content-center">
+                            <i class="bi bi-gear me-2"></i> 配置管理
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 抓取状态提示 -->
+<div class="row mb-4" id="fetchStatus" style="display: none;">
+    <div class="col-12">
+        <div class="alert alert-info" role="alert">
+            <div class="d-flex align-items-center">
+                <div class="spinner-border spinner-border-sm me-3" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <div class="flex-grow-1">
+                    <strong id="fetchStatusTitle">正在抓取新闻...</strong>
+                    <p class="mb-0" id="fetchMessage">初始化中...</p>
+                    <div class="progress mt-2" style="height: 6px;">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated"
+                             id="fetchProgress" role="progressbar" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- AI摘要和趋势分析 -->
+<div class="row mb-4 fade-in-up" id="aiSummarySection">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>
+                    <i class="bi bi-robot"></i> AI分析摘要
+                </span>
+                <span class="badge bg-primary" id="aiDate">最新</span>
+            </div>
+            <div class="card-body">
+                <div id="aiContent">
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2 text-muted">正在加载AI分析...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 更多统计 -->
+<div class="row mb-4 fade-in-up">
+    <div class="col-lg-4 col-md-6 mb-3">
+        <div class="modern-stat-card primary">
+            <div class="d-flex align-items-center">
+                <div class="icon">
+                    <i class="bi bi-journal-text"></i>
+                </div>
+                <div class="flex-grow-1 ms-3">
+                    <h3>{{ stats.source_count }}</h3>
+                    <p>新闻源数量</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 col-md-6 mb-3">
+        <div class="modern-stat-card success">
+            <div class="d-flex align-items-center">
+                <div class="icon">
+                    <i class="bi bi-star"></i>
+                </div>
+                <div class="flex-grow-1 ms-3">
+                    <h3>{{ stats.avg_score }}</h3>
+                    <p>平均评分</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 col-md-6 mb-3">
+        <div class="modern-stat-card {% if stats.latest_run and stats.latest_run.status == 'success' %}success{% else %}warning{% endif %}">
+            <div class="d-flex align-items-center">
+                <div class="icon">
+                    <i class="bi bi-activity"></i>
+                </div>
+                <div class="flex-grow-1 ms-3">
+                    <h5 class="mb-1">运行状态</h5>
+                    <p class="mb-0">
+                        {% if stats.latest_run %}
+                            <span class="badge bg-{{ 'success' if stats.latest_run.status == 'success' else 'danger' }}">
+                                {{ stats.latest_run.status }}
+                            </span>
+                        {% else %}
+                            <span class="text-muted">无记录</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-warning fade-in-up" role="alert">
+    <i class="bi bi-exclamation-triangle"></i>
+    暂无统计数据，请先运行新闻抓取任务。
+</div>
+{% endif %}
+
+<!-- 趋势图表 -->
+{% if trend_data and trend_data.dates|length > 1 %}
+<div class="row mb-4 fade-in-up">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-graph-up"></i> 最近7天趋势
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- 最新新闻 -->
+<div class="row fade-in-up">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>
+                    <i class="bi bi-newspaper"></i> 最新新闻
+                </span>
+                <a href="{{ url_for('news.list') }}" class="btn btn-sm btn-primary">
+                    查看全部 <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+            <div class="card-body">
+                {% if recent_news %}
+                <div class="row" id="newsList">
+                    {% for item in recent_news %}
+                    <div class="col-lg-6 col-md-12 mb-3">
+                        <div class="card h-100 news-card">
+                            <div class="card-body">
+                                <a href="{{ item.link }}" target="_blank" class="news-title text-truncate-2">
+                                    {{ item.title }}
+                                </a>
+                                <div class="news-meta">
+                                    <span class="badge bg-secondary">{{ item.source }}</span>
+                                    {% if item.region %}
+                                    <span class="badge bg-{{ 'success' if item.region == 'domestic' else 'info' }}">
+                                        {{ '国内' if item.region == 'domestic' else '国际' }}
+                                    </span>
+                                    {% endif %}
+                                    {% if item.date %}
+                                    <span class="ms-auto">
+                                        <i class="bi bi-calendar"></i> {{ item.date }}
+                                    </span>
+                                    {% endif %}
+                                    {% if item.score > 0 %}
+                                    <span class="badge bg-warning text-dark ms-2">
+                                        <i class="bi bi-star-fill"></i> {{ item.score }}
+                                    </span>
+                                    {% endif %}
+                                </div>
+                                {% if item.summary %}
+                                <p class="news-summary text-truncate-2 mb-0">{{ item.summary }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-inbox fs-1 text-muted"></i>
+                    <p class="text-muted mt-3">暂无新闻数据</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let isFetching = false;
+
+document.addEventListener('DOMContentLoaded', function() {
+    // 加载AI摘要
+    loadAISummary();
+
+    // 立即抓取功能
+    const fetchBtn = document.getElementById('fetchNewsBtn');
+    const fetchStatus = document.getElementById('fetchStatus');
+    const fetchMessage = document.getElementById('fetchMessage');
+    const fetchProgress = document.getElementById('fetchProgress');
+
+    if (fetchBtn) {
+        fetchBtn.addEventListener('click', function() {
+            if (!confirm('确定要立即抓取新闻吗？这将需要2-3分钟时间。')) {
+                return;
+            }
+
+            // 禁用按钮
+            fetchBtn.disabled = true;
+            fetchBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> 抓取中...';
+
+            // 显示状态
+            fetchStatus.style.display = 'block';
+            fetchMessage.textContent = '正在启动抓取任务...';
+            updateProgress(5);
+
+            // 发送抓取请求
+            fetch('/api/fetch-news', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    isFetching = true;
+                    fetchMessage.textContent = data.message || '抓取任务已启动，正在后台运行...';
+                    updateProgress(10);
+
+                    // 开始轮询检查状态
+                    setTimeout(checkFetchStatus, 2000);
+                } else {
+                    App.showError(data.message || '抓取启动失败');
+                    resetFetchButton();
+                    hideFetchStatus();
+                }
+            })
+            .catch(error => {
+                App.showError('抓取启动失败: ' + error);
+                resetFetchButton();
+                hideFetchStatus();
+            });
+        });
+    }
+
+    {% if trend_data and trend_data.dates|length > 1 %}
+    // 创建趋势图
+    const trendCtx = document.getElementById('trendChart');
+    if (trendCtx) {
+        new Chart(trendCtx, {
+            type: 'line',
+            data: {
+                labels: {{ trend_data.dates | tojson }},
+                datasets: [
+                    {
+                        label: '总计',
+                        data: {{ trend_data.total | tojson }},
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#667eea',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 5,
+                        pointHoverRadius: 7
+                    },
+                    {
+                        label: '国内',
+                        data: {{ trend_data.domestic | tojson }},
+                        borderColor: '#00f2fe',
+                        backgroundColor: 'rgba(0, 242, 254, 0.1)',
+                        tension: 0.4,
+                        pointBackgroundColor: '#00f2fe',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 5,
+                        pointHoverRadius: 7
+                    },
+                    {
+                        label: '国际',
+                        data: {{ trend_data.global | tojson }},
+                        borderColor: '#fee140',
+                        backgroundColor: 'rgba(254, 225, 64, 0.1)',
+                        tension: 0.4,
+                        pointBackgroundColor: '#fee140',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 5,
+                        pointHoverRadius: 7
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20,
+                            font: {
+                                size: 13,
+                                weight: '600'
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                },
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                }
+            }
+        });
+    }
+    {% endif %}
+
+    // 添加淡入动画
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.fade-in-up').forEach(el => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(20px)';
+        el.style.transition = 'all 0.6s ease-out';
+        observer.observe(el);
+    });
+});
+
+// 加载AI摘要
+function loadAISummary() {
+    fetch('/api/ai-summary')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.data) {
+                displayAISummary(data.data);
+            } else {
+                document.getElementById('aiContent').innerHTML = `
+                    <div class="text-center py-4">
+                        <i class="bi bi-inbox fs-1 text-muted"></i>
+                        <p class="text-muted mt-3">暂无AI分析，请先运行抓取任务</p>
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('加载AI摘要失败:', error);
+        });
+}
+
+// 显示AI摘要
+function displayAISummary(data) {
+    const aiDate = document.getElementById('aiDate');
+    const aiContent = document.getElementById('aiContent');
+
+    if (aiDate && data.date) {
+        aiDate.textContent = data.date;
+    }
+
+    let html = '';
+
+    if (data.ai_summary) {
+        html += `
+            <div class="mb-4">
+                <h6 class="text-primary mb-2">
+                    <i class="bi bi-chat-quote"></i> 今日摘要
+                </h6>
+                <p class="mb-0 text-pre-wrap" style="white-space: pre-wrap;">${data.ai_summary}</p>
+            </div>
+        `;
+    }
+
+    if (data.ai_trends) {
+        html += `
+            <div>
+                <h6 class="text-warning mb-2">
+                    <i class="bi bi-trends"></i> 趋势分析
+                </h6>
+                <p class="mb-0 text-pre-wrap" style="white-space: pre-wrap;">${data.ai_trends}</p>
+            </div>
+        `;
+    }
+
+    if (!html) {
+        html = `
+            <div class="text-center py-4">
+                <p class="text-muted">暂无AI分析</p>
+            </div>
+        `;
+    }
+
+    aiContent.innerHTML = html;
+}
+
+// 检查抓取状态
+function checkFetchStatus() {
+    fetch('/api/fetch-status')
+        .then(response => response.json())
+        .then(data => {
+            if (data.running) {
+                fetchMessage.textContent = data.message || '正在抓取新闻...';
+                // 更新进度
+                const progress = Math.min(95, Math.floor((data.total_fetched / 10) * 30));
+                updateProgress(progress);
+                setTimeout(checkFetchStatus, 2000); // 2秒后再次检查
+            } else if (data.success) {
+                fetchMessage.textContent = '抓取完成！正在刷新数据...';
+                updateProgress(100);
+                isFetching = false;
+
+                // 刷新数据
+                setTimeout(() => {
+                    location.reload();
+                }, 1500);
+            } else {
+                fetchMessage.textContent = '抓取失败: ' + (data.message || '未知错误');
+                updateProgress(0);
+                App.showError('抓取失败');
+                resetFetchButton();
+                setTimeout(() => {
+                    hideFetchStatus();
+                }, 5000);
+                isFetching = false;
+            }
+        })
+        .catch(error => {
+            console.error('检查状态失败:', error);
+            if (isFetching) {
+                setTimeout(checkFetchStatus, 2000);
+            }
+        });
+}
+
+// 更新进度条
+function updateProgress(percent) {
+    const progressBar = document.getElementById('fetchProgress');
+    if (progressBar) {
+        progressBar.style.width = percent + '%';
+    }
+}
+
+// 重置抓取按钮
+function resetFetchButton() {
+    const fetchBtn = document.getElementById('fetchNewsBtn');
+    if (fetchBtn) {
+        fetchBtn.disabled = false;
+        fetchBtn.innerHTML = '<i class="bi bi-arrow-clockwise me-2"></i> 立即抓取';
+    }
+}
+
+// 隐藏抓取状态
+function hideFetchStatus() {
+    const fetchStatus = document.getElementById('fetchStatus');
+    if (fetchStatus) {
+        fetchStatus.style.display = 'none';
+    }
+}
+</script>
+{% endblock %}

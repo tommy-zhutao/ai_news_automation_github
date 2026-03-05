@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block title %}新闻列表 - AI新闻自动化系统{% endblock %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-12">
+        <h1 class="h3">
+            <i class="bi bi-list-ul"></i> 新闻列表
+        </h1>
+    </div>
+</div>
+
+<!-- 筛选器 -->
+<div class="filters mb-3">
+    <form method="get" class="row g-2">
+        <div class="col-md-2">
+            <input type="date" name="date" class="form-control form-control-sm"
+                   value="{{ filters.date or '' }}" placeholder="日期">
+        </div>
+        <div class="col-md-2">
+            <select name="category" class="form-select form-select-sm">
+                <option value="">全部分类</option>
+                <option value="AI" {{ 'selected' if filters.category == 'AI' else '' }}>AI</option>
+                <option value="机器学习" {{ 'selected' if filters.category == '机器学习' else '' }}>机器学习</option>
+                <option value="深度学习" {{ 'selected' if filters.category == '深度学习' else '' }}>深度学习</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <select name="region" class="form-select form-select-sm">
+                <option value="">全部地区</option>
+                <option value="domestic" {{ 'selected' if filters.region == 'domestic' else '' }}>国内</option>
+                <option value="global" {{ 'selected' if filters.region == 'global' else '' }}>国际</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <select name="type" class="form-select form-select-sm">
+                <option value="">全部类型</option>
+                <option value="news" {{ 'selected' if filters.type == 'news' else '' }}>新闻</option>
+                <option value="rss" {{ 'selected' if filters.type == 'rss' else '' }}>RSS</option>
+                <option value="github" {{ 'selected' if filters.type == 'github' else '' }}>GitHub</option>
+                <option value="huggingface" {{ 'selected' if filters.type == 'huggingface' else '' }}>HuggingFace</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <input type="text" name="source" class="form-control form-control-sm"
+                   value="{{ filters.source or '' }}" placeholder="来源">
+        </div>
+        <div class="col-md-2">
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary btn-sm flex-grow-1">
+                    <i class="bi bi-funnel"></i> 筛选
+                </button>
+                <a href="{{ url_for('news.list') }}" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-x-circle"></i> 重置
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- 搜索框 -->
+<div class="row mb-3">
+    <div class="col-12">
+        <form action="{{ url_for('news.search') }}" method="get" class="d-flex">
+            <div class="input-group">
+                <span class="input-group-text">
+                    <i class="bi bi-search"></i>
+                </span>
+                <input type="text" name="q" class="form-control" placeholder="搜索标题、链接或摘要..." required>
+                <button class="btn btn-primary" type="submit">搜索</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 新闻列表 -->
+{% if news %}
+<div class="row">
+    {% for item in news %}
+    <div class="col-lg-6 col-md-12 mb-3">
+        <div class="card h-100 news-card">
+            <div class="card-body">
+                <a href="{{ item.link }}" target="_blank" class="news-title text-truncate-2">
+                    {{ item.title }}
+                </a>
+                <div class="news-meta">
+                    <span class="badge bg-secondary">{{ item.source }}</span>
+                    {% if item.region %}
+                    <span class="badge bg-{{ 'success' if item.region == 'domestic' else 'info' }}">
+                        {{ '国内' if item.region == 'domestic' else '国际' }}
+                    </span>
+                    {% endif %}
+                    {% if item.category %}
+                    <span class="badge bg-primary">{{ item.category }}</span>
+                    {% endif %}
+                    {% if item.type %}
+                    <span class="badge bg-outline-secondary">{{ item.type }}</span>
+                    {% endif %}
+                    <span class="ms-2">
+                        <i class="bi bi-calendar"></i> {{ item.date }}
+                    </span>
+                    {% if item.score > 0 %}
+                    <span class="badge bg-warning text-dark ms-2">
+                        <i class="bi bi-star-fill"></i> {{ item.score }}
+                    </span>
+                    {% endif %}
+                </div>
+                {% if item.summary %}
+                <p class="news-summary text-truncate-3 mb-0">{{ item.summary }}</p>
+                {% endif %}
+            </div>
+            <div class="card-footer bg-transparent border-top-0">
+                <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted">
+                        <i class="bi bi-clock"></i> {{ item.created_at[:19] if item.created_at else '' }}
+                    </small>
+                    <a href="{{ url_for('news.detail', news_id=item.id) }}" class="btn btn-sm btn-outline-primary">
+                        查看详情
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- 分页 -->
+{% if pagination %}
+<nav aria-label="分页导航">
+    <ul class="pagination justify-content-center">
+        <li class="page-item {{ 'disabled' if not pagination.has_prev else '' }}">
+            <a class="page-link"
+               href="{{ url_for('news.list', page=pagination.page-1, **filters) }}"
+               {{ 'tabindex="-1" aria-disabled="true"' if not pagination.has_prev else '' }}>
+                上一页
+            </a>
+        </li>
+
+        {% for page_num in range(1, pagination.pages + 1) %}
+            {% if page_num == pagination.page %}
+            <li class="page-item active">
+                <span class="page-link">{{ page_num }}</span>
+            </li>
+            {% elif page_num <= 3 or page_num > pagination.pages - 3 or (page_num >= pagination.page - 1 and page_num <= pagination.page + 1) %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('news.list', page=page_num, **filters) }}">{{ page_num }}</a>
+            </li>
+            {% elif page_num == 4 or page_num == pagination.pages - 3 %}
+            <li class="page-item disabled">
+                <span class="page-link">...</span>
+            </li>
+            {% endif %}
+        {% endfor %}
+
+        <li class="page-item {{ 'disabled' if not pagination.has_next else '' }}">
+            <a class="page-link"
+               href="{{ url_for('news.list', page=pagination.page+1, **filters) }}"
+               {{ 'tabindex="-1" aria-disabled="true"' if not pagination.has_next else '' }}>
+                下一页
+            </a>
+        </li>
+    </ul>
+</nav>
+
+<div class="text-center text-muted mb-3">
+    <small>第 {{ pagination.page }} / {{ pagination.pages }} 页，共 {{ pagination.total }} 条</small>
+</div>
+{% endif %}
+
+{% else %}
+<div class="text-center py-5">
+    <i class="bi bi-inbox fs-1 text-muted"></i>
+    <p class="text-muted mt-3">暂无新闻数据</p>
+</div>
+{% endif %}
+{% endblock %}

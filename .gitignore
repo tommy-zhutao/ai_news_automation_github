@@ -42,3 +42,6 @@ desktop.ini
 *.tmp
 *.bak
 nul
+# Database
+data/
+*.db

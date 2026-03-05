@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block title %}新闻源管理 - AI新闻自动化系统{% endblock %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-12">
+        <h1 class="h3">
+            <i class="bi bi-gear"></i> 新闻源管理
+        </h1>
+    </div>
+</div>
+
+<!-- 系统预设源 -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-list-stars"></i> 系统预设源
+            </div>
+            <div class="card-body">
+                <p class="text-muted">
+                    系统预设的新闻源，可通过配置文件启用或禁用。
+                </p>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>名称</th>
+                                <th>类型</th>
+                                <th>状态</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if sources and sources.system %}
+                                {% for source in sources.system %}
+                                <tr>
+                                    <td>{{ source.name }}</td>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ source.type }}</span>
+                                    </td>
+                                    <td>
+                                        {% if source.enabled %}
+                                        <span class="badge bg-success">启用</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">禁用</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-secondary" disabled>
+                                            <i class="bi bi-lock"></i> 系统源
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center text-muted">暂无数据</td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 自定义源 -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>
+                    <i class="bi bi-plus-circle"></i> 自定义新闻源
+                </span>
+                <a href="{{ url_for('config.add_source') }}" class="btn btn-sm btn-primary">
+                    <i class="bi bi-plus-lg"></i> 添加源
+                </a>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">
+                    添加您自己的新闻源，支持HTML页面和RSS订阅。
+                </p>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>名称</th>
+                                <th>URL</th>
+                                <th>类型</th>
+                                <th>分类</th>
+                                <th>区域</th>
+                                <th>状态</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if sources and sources.custom %}
+                                {% for source in sources.custom %}
+                                <tr>
+                                    <td>{{ source.name }}</td>
+                                    <td class="text-truncate" style="max-width: 200px;">
+                                        <a href="{{ source.url }}" target="_blank" class="text-truncate d-block">
+                                            {{ source.url }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{{ 'primary' if source.type == 'rss' else 'info' }}">
+                                            {{ source.type.upper() }}
+                                        </span>
+                                    </td>
+                                    <td>{{ source.category }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ 'success' if source.region == 'domestic' else 'warning' }}">
+                                            {{ '国内' if source.region == 'domestic' else '国际' }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if source.enabled %}
+                                        <span class="badge bg-success">启用</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">禁用</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary"
+                                                onclick="App.showInfo('编辑功能开发中...')">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <form method="post" action="{{ url_for('config.delete_source', source_id=source.id) }}"
+                                              class="d-inline"
+                                              onsubmit="return confirm('确定要删除这个新闻源吗？');">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center text-muted">暂无自定义源</td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 源健康状态 -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-activity"></i> 源健康状态
+            </div>
+            <div class="card-body">
+                <p class="text-muted">各新闻源的最近抓取状态和成功率。</p>
+                <div class="alert alert-info" role="alert">
+                    <i class="bi bi-info-circle"></i> 此功能需要运行抓取任务后才有数据。
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

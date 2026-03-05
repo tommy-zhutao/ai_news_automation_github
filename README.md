@@ -5,11 +5,11 @@
 ![Python](https://img.shields.io/badge/Python-3.8%2B-blue)
 ![License](https://img.shields.io/badge/License-MIT-green)
 ![Status](https://img.shields.io/badge/Status-Production--ready)
-![Version](https://img.shields.io/badge/Version-2.3.0-blue)
+![Version](https://img.shields.io/badge/Version-2.4.0-blue)
 
 每天定时从全球新闻源抓取AI新闻，使用本地AI模型进行分类、总结，并通过邮件发送。
 
-[功能特点](#功能特点) • [快速开始](#快速开始) • [配置说明](#配置说明) • [更新日志](#更新日志)
+[功能特点](#功能特点) • [快速开始](#快速开始) • [配置说明](#配置说明) • [Web管理](#web管理界面-) • [更新日志](#更新日志)
 
 </div>
 
@@ -23,8 +23,9 @@
 - **🌐 双模型处理** - 国内用Qwen，国际用Llama
 - **📧 美观邮件** - 现代化HTML模板，响应式设计
 - **⚡ 高性能** - 3分钟完成抓取和处理，支持动态并发
+- **🖥️ Web管理界面** - 可视化管理、数据分析、配置管理 🆕
 
-### 🚀 最新优化（v2.3.0）
+### 🚀 最新优化（v2.4.0）
 - **🌍 多样化新闻源** - 新增40+个源，覆盖欧洲、亚太、学术、开源社区
 - **⚡ 性能优化** - 运行时间优化到3分钟，成功率提升到70%+
 - **🔧 智能重试** - 指数退避算法，自动处理请求失败
@@ -94,7 +95,7 @@
 ## 项目结构
 
 ```
-ai_news_refactored/
+ai_news_automation_github/
 ├── src/
 │   ├── __init__.py
 │   ├── main.py                 # 主程序入口
@@ -119,16 +120,48 @@ ai_news_refactored/
 │   │   ├── __init__.py
 │   │   ├── templates.py        # 邮件模板（4种风格）
 │   │   └── sender.py           # 邮件发送器
+│   ├── web/                    # Web管理界面 🆕
+│   │   ├── __init__.py
+│   │   ├── app.py              # Flask应用入口
+│   │   ├── models.py           # 数据库模型
+│   │   ├── routes/             # 路由
+│   │   │   ├── main.py         # 主页路由
+│   │   │   ├── news.py         # 新闻相关路由
+│   │   │   ├── stats.py        # 统计分析路由
+│   │   │   ├── config.py       # 配置管理路由
+│   │   │   └── api.py          # API路由
+│   │   ├── services/           # 业务逻辑层
+│   │   │   ├── news_service.py # 新闻业务逻辑
+│   │   │   ├── stats_service.py# 统计业务逻辑
+│   │   │   ├── config_service.py # 配置业务逻辑
+│   │   │   └── data_importer.py # 数据导入服务
+│   │   └── templates/          # Jinja2模板
+│   │       ├── base.html       # 基础模板
+│   │       ├── index.html      # 首页
+│   │       ├── news/           # 新闻模板
+│   │       ├── stats/          # 统计模板
+│   │       ├── config/         # 配置模板
+│   │       └── errors/         # 错误页面
 │   └── utils/                  # 工具模块
 │       ├── __init__.py
 │       ├── logger.py           # 日志系统
 │       └── helpers.py          # 辅助函数
+├── static/                     # 静态资源 🆕
+│   ├── css/
+│   │   └── style.css           # 自定义样式
+│   └── js/
+│       ├── app.js              # 主要JavaScript
+│       └── charts.js           # 图表配置
+├── data/                       # 数据库目录 🆕
+│   └── news.db                 # SQLite数据库
 ├── tests/                      # 测试模块
 ├── logs/                       # 日志目录
 ├── output/                     # 输出目录
 ├── config.json                 # 配置文件
 ├── requirements.txt            # 依赖列表
 ├── run.py                      # 快速启动脚本
+├── run_web.py                  # Web服务器启动脚本 🆕
+├── run_web.bat                 # Web启动批处理 🆕
 └── README.md                   # 项目说明
 ```
 
@@ -280,7 +313,78 @@ python run.py --help
 | `--config` | 指定配置文件路径 |
 | `--no-email` | 不发送邮件，仅保存文件 |
 | `--test-ai` | 测试AI功能 |
+| `--web` | 启动Web管理界面 |
+| `--web-host` | Web服务器主机地址（默认: 127.0.0.1） |
+| `--web-port` | Web服务器端口（默认: 5000） |
+| `--import-data` | 导入历史数据到数据库 |
 | `--log-level` | 日志级别 (DEBUG/INFO/WARNING/ERROR) |
+
+## Web管理界面 🆕
+
+系统新增了Web管理界面，提供可视化的数据浏览、统计分析和配置管理功能。
+
+### 启动Web服务器
+
+#### 方式1：使用批处理文件（Windows）
+
+```bash
+# 双击运行
+run_web.bat
+```
+
+#### 方式2：使用命令行
+
+```bash
+# 启动Web服务器
+python run.py --web
+
+# 指定主机和端口
+python run.py --web --host 0.0.0.0 --port 8080
+
+# 使用独立脚本
+python run_web.py
+```
+
+### Web功能
+
+1. **首页仪表盘**
+   - 系统概览统计（总新闻数、今日新闻、国内/国际分布）
+   - 最近7天趋势图表
+   - 最新新闻列表
+
+2. **新闻浏览**
+   - 分页浏览所有历史新闻
+   - 多条件筛选（日期、分类、地区、类型、来源）
+   - 关键词搜索
+   - 新闻详情查看
+
+3. **统计分析**
+   - 新闻数量趋势图（支持7天/30天/90天）
+   - 分类分布饼图
+   - 新闻源性能统计
+
+4. **配置管理**
+   - 系统预设源查看
+   - 自定义新闻源添加/删除
+   - 支持RSS和HTML类型源
+
+5. **数据导入**
+   - 导入历史JSON文件到SQLite数据库
+   - 自动同步output目录下的数据
+
+### 首次使用
+
+1. 启动Web服务器
+2. 访问 http://localhost:5000
+3. 导入历史数据（可选）：
+   ```bash
+   python run.py --import-data
+   ```
+
+### 访问地址
+
+- 本地访问：http://localhost:5000
+- 局域网访问：http://0.0.0.0:5000（使用 `--web-host 0.0.0.0`）
 
 ## 输出说明
 
@@ -410,6 +514,20 @@ HuggingFaceFetcher(max_news=5)
 修改 `src/email/templates.py` 中的模板类。
 
 ## 更新日志
+
+### v2.4.0 (2026-03-05)
+- 🌐 **全新Web管理界面**：Flask 3.0 + SQLAlchemy + Bootstrap 5
+  - 📊 实时数据仪表盘：统计、趋势图表、最新新闻
+  - ⚡ 一键立即抓取：实时进度显示，完成后自动刷新
+  - 🤖 AI分析展示：智能摘要和趋势分析实时显示
+  - 📰 历史新闻浏览：筛选、搜索、分页，支持移动端
+  - 📈 统计分析图表：趋势图、饼图、柱状图数据可视化
+  - ⚙️ 配置管理界面：新闻源启停、自定义源管理
+  - 🎨 现代化UI设计：渐变色、动画效果、响应式布局
+- 🔧 **数据导入服务**：自动将历史JSON文件导入SQLite数据库
+- 📊 **实时更新机制**：Web界面实时同步抓取进度和结果
+- 📱 **移动端适配**：支持手机、平板、桌面全平台访问
+- 🐛 **性能优化**：优化数据库查询，提升页面加载速度
 
 ### v2.3.0 (2026-03-04)
 - ✨ **智能去重系统**：URL指纹识别 + 标题相似度检测，自动移除重复内容

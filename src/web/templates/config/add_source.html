@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}添加新闻源 - AI新闻自动化系统{% endblock %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">首页</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('config.sources') }}">新闻源管理</a></li>
+                <li class="breadcrumb-item active">添加源</li>
+            </ol>
+        </nav>
+        <h1 class="h3">
+            <i class="bi bi-plus-circle"></i> 添加自定义新闻源
+        </h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="post">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">源名称 <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="name" name="name" required
+                               value="{{ data.name if data else '' }}">
+                        <div class="form-text">给新闻源起一个易于识别的名称</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="url" class="form-label">URL <span class="text-danger">*</span></label>
+                        <input type="url" class="form-control" id="url" name="url" required
+                               value="{{ data.url if data else '' }}">
+                        <div class="form-text">RSS订阅链接或HTML页面链接</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="type" class="form-label">类型 <span class="text-danger">*</span></label>
+                        <select class="form-select" id="type" name="type" required>
+                            <option value="rss" {{ 'selected' if data and data.type == 'rss' else '' }}>RSS订阅</option>
+                            <option value="html" {{ 'selected' if data and data.type == 'html' else '' }}>HTML页面</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="category" class="form-label">分类 <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="category" name="category" required
+                               value="{{ data.category if data else '' }}"
+                               list="category-list">
+                        <datalist id="category-list">
+                            <option value="AI">
+                            <option value="机器学习">
+                            <option value="深度学习">
+                            <option value="自然语言处理">
+                            <option value="计算机视觉">
+                        </datalist>
+                        <div class="form-text">新闻分类，如：AI、机器学习等</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="region" class="form-label">区域 <span class="text-danger">*</span></label>
+                        <select class="form-select" id="region" name="region" required>
+                            <option value="domestic" {{ 'selected' if data and data.region == 'domestic' else '' }}>国内</option>
+                            <option value="global" {{ 'selected' if data and data.region == 'global' else '' }}>国际</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3" id="selector-group" style="display: none;">
+                        <label for="selector" class="form-label">CSS选择器</label>
+                        <input type="text" class="form-control" id="selector" name="selector"
+                               value="{{ data.selector if data else '' }}">
+                        <div class="form-text">
+                            仅HTML类型需要。使用CSS选择器指定新闻链接的位置，例如：
+                            <code>.article-list a</code>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg"></i> 保存
+                        </button>
+                        <a href="{{ url_for('config.sources') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-lg"></i> 取消
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-question-circle"></i> 帮助
+            </div>
+            <div class="card-body">
+                <h5 class="h6">RSS订阅</h5>
+                <p class="small text-muted">
+                    RSS订阅是最简单的添加方式，系统会自动解析订阅内容。
+                </p>
+
+                <h5 class="h6">HTML页面</h5>
+                <p class="small text-muted">
+                    添加HTML页面需要提供CSS选择器来定位新闻链接。
+                    建议使用浏览器开发者工具找到链接的选择器。
+                </p>
+
+                <h5 class="h6">分类</h5>
+                <p class="small text-muted">
+                    分类用于筛选和统计，建议使用常见的AI相关分类名称。
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const typeSelect = document.getElementById('type');
+    const selectorGroup = document.getElementById('selector-group');
+
+    typeSelect.addEventListener('change', function() {
+        if (this.value === 'html') {
+            selectorGroup.style.display = 'block';
+        } else {
+            selectorGroup.style.display = 'none';
+        }
+    });
+
+    // 初始化显示状态
+    if (typeSelect.value === 'html') {
+        selectorGroup.style.display = 'block';
+    }
+});
+</script>
+{% endblock %}

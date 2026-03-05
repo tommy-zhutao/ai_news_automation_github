@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}{{ news.title }} - 新闻详情{% endblock %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">首页</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('news.list') }}">新闻列表</a></li>
+                <li class="breadcrumb-item active">详情</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-body">
+                <h1 class="h3 mb-3">{{ news.title }}</h1>
+
+                <div class="news-meta mb-4">
+                    <span class="badge bg-secondary">{{ news.source }}</span>
+                    {% if news.region %}
+                    <span class="badge bg-{{ 'success' if news.region == 'domestic' else 'info' }}">
+                        {{ '国内' if news.region == 'domestic' else '国际' }}
+                    </span>
+                    {% endif %}
+                    {% if news.category %}
+                    <span class="badge bg-primary">{{ news.category }}</span>
+                    {% endif %}
+                    {% if news.type %}
+                    <span class="badge bg-outline-secondary">{{ news.type }}</span>
+                    {% endif %}
+                    <span class="ms-2">
+                        <i class="bi bi-calendar"></i> {{ news.date }}
+                    </span>
+                    {% if news.score > 0 %}
+                    <span class="badge bg-warning text-dark ms-2">
+                        <i class="bi bi-star-fill"></i> {{ news.score }}
+                    </span>
+                    {% endif %}
+                </div>
+
+                {% if news.summary %}
+                <div class="mb-4">
+                    <h5 class="mb-2">AI摘要</h5>
+                    <p class="news-summary">{{ news.summary }}</p>
+                </div>
+                {% endif %}
+
+                <div class="d-flex gap-2 mb-4">
+                    <a href="{{ news.link }}" target="_blank" class="btn btn-primary">
+                        <i class="bi bi-box-arrow-up-right"></i> 查看原文
+                    </a>
+                    <button class="btn btn-outline-secondary" onclick="App.copyToClipboard('{{ news.link }}')">
+                        <i class="bi bi-clipboard"></i> 复制链接
+                    </button>
+                    <a href="{{ url_for('news.list') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> 返回列表
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-info-circle"></i> 详细信息
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <tr>
+                        <th>来源</th>
+                        <td>{{ news.source }}</td>
+                    </tr>
+                    <tr>
+                        <th>分类</th>
+                        <td>{{ news.category or '-' }}</td>
+                    </tr>
+                    <tr>
+                        <th>地区</th>
+                        <td>{{ '国内' if news.region == 'domestic' else '国际' if news.region else '-' }}</td>
+                    </tr>
+                    <tr>
+                        <th>类型</th>
+                        <td>{{ news.type }}</td>
+                    </tr>
+                    <tr>
+                        <th>日期</th>
+                        <td>{{ news.date }}</td>
+                    </tr>
+                    <tr>
+                        <th>评分</th>
+                        <td>
+                            {% if news.score > 0 %}
+                            <span class="badge bg-warning text-dark">{{ news.score }}</span>
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>创建时间</th>
+                        <td>{{ news.created_at[:19] if news.created_at else '-' }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header">
+                <i class="bi bi-link-45deg"></i> 原始链接
+            </div>
+            <div class="card-body">
+                <p class="text-break small text-muted mb-0">{{ news.link }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
