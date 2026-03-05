@@ -430,7 +430,7 @@ DEFAULT_CONFIG = {
     "ai": {
         "enabled": True,
         "ollama_url": "http://localhost:11434",
-        "model_name": "qwen3:7b-instruct",
+        "model_name": "qwen3:8b",
         "temperature": 0.7,
         "max_tokens": 2000,
         "timeout": 60,

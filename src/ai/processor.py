@@ -346,7 +346,7 @@ class NewsAIProcessor:
 趋势：[你的趋势分析]"""
 
         self.logger.info("正在生成综合摘要和趋势分析...")
-        result = self.client.generate(prompt, model="qwen3:7b-instruct", temperature=0.4)
+        result = self.client.generate(prompt, model="qwen3:8b", temperature=0.4)
 
         if result:
             # 解析结果
@@ -392,8 +392,8 @@ class NewsAIProcessor:
                 return cached_result
 
         # 分别生成国内外的摘要和趋势
-        domestic_summary = self.generate_summary_for_region(news_list, "domestic", "qwen3:7b-instruct")
-        domestic_trends = self.generate_trends_for_region(news_list, "domestic", "qwen3:7b-instruct")
+        domestic_summary = self.generate_summary_for_region(news_list, "domestic", "qwen3:8b")
+        domestic_trends = self.generate_trends_for_region(news_list, "domestic", "qwen3:8b")
         global_summary = self.generate_summary_for_region(news_list, "global", "llama3.1:8b")
         global_trends = self.generate_trends_for_region(news_list, "global", "llama3.1:8b")
 

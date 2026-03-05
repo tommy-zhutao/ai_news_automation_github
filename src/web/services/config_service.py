@@ -130,7 +130,7 @@ class ConfigService:
         """
         return {
             'ai_enabled': getattr(self.config.ai, 'enabled', True),
-            'ai_model_domestic': getattr(self.config.ai, 'domestic_model', 'qwen3:7b-instruct'),
+            'ai_model_domestic': getattr(self.config.ai, 'domestic_model', 'qwen3:8b'),
             'ai_model_global': getattr(self.config.ai, 'global_model', 'llama3.1:8b'),
             'concurrent_requests': getattr(self.config.fetcher, 'concurrent_requests', 5),
             'enable_github': getattr(self.config.fetcher, 'enable_github', True),
